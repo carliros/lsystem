@@ -1,0 +1,144 @@
+PRAGMA genlinepragmas
+
+imports{
+import Data.List
+}
+
+DATA SistemaL 
+    | SistemaL nombre       : String
+               alfabeto     : Alfabeto
+               inicio       : Inicio
+               producciones : Producciones
+
+DATA Simbolo
+    | Simbolo String
+
+TYPE Alfabeto = [Simbolo]
+TYPE Inicio   = [Simbolo]
+TYPE Producciones = [Produccion]
+TYPE Produccion = (Simbolo, Succesor)
+TYPE Succesor = [Simbolo]
+
+DERIVING *: Show
+DERIVING Simbolo: Eq
+
+-- construimos el alfabeto de un sistema l
+ATTR Alfabeto [|alf: {[String]}|]
+SEM SistemaL
+    | SistemaL alfabeto.alf = []
+
+SEM Alfabeto
+    | Cons loc.verificar = elem @hd.simb @lhs.alf
+           tl.alf   = if @loc.verificar
+                      then @lhs.alf
+                      else @hd.simb : @lhs.alf
+           lhs.alf  = @tl.alf
+    | Nil  lhs.alf  = @lhs.alf
+
+-- compartimos el alfabeto a la estructura
+ATTR Inicio Producciones Produccion Succesor [alfabeto: {[String]} ||]
+SEM SistemaL
+    | SistemaL inicio.alfabeto       = @alfabeto.alf
+               producciones.alfabeto = @alfabeto.alf
+
+-- subimos el simbolo
+ATTR Produccion Simbolo [|| simb: String ]
+SEM Simbolo
+    | Simbolo lhs.simb = @string
+
+-- construyendo el resultado
+ATTR SistemaL [|| resultado: {Either [String] SistemaL}]
+SEM SistemaL
+    | SistemaL lhs.resultado = if null @loc.errores
+                               then let producciones = addIdentProds @producciones.prods @alfabeto.alf
+                                    in Right (SistemaL @nombre @alfabeto.self @inicio.self producciones)
+                               else Left @loc.errores
+
+ATTR Alfabeto Inicio Produccion Succesor Simbolo [|| self: SELF]
+ATTR Producciones [|prods: {Producciones}|]
+SEM Producciones
+    | Cons loc.verificar = myElem @hd.simb @lhs.prods
+           tl.prods = if @loc.verificar
+                      then @lhs.prods
+                      else @hd.self : @lhs.prods
+           lhs.prods = @tl.prods
+
+SEM SistemaL
+    | SistemaL producciones.prods = []
+
+{
+addIdentProds prods alfa 
+    = let prods' = map (\(Simbolo e,_) -> e) prods
+          resto  = alfa \\ prods'
+          iprods = map (\e -> (Simbolo e, [Simbolo e])) resto
+      in prods ++ iprods
+
+myElem _ [] = False
+myElem e1 ((Simbolo e2,_):xs) = if e1 == e2
+                                then True
+                                else myElem e1 xs
+}
+
+-- Errores
+ATTR Alfabeto Inicio Producciones Produccion Succesor [|| errores: {[String]}]
+SEM SistemaL
+    | SistemaL loc.errores
+            = let inicioErr = if null @inicio.self
+                              then "La lista de simbolos de inicio no puede ser vacia" : @inicio.errores
+                              else @inicio.errores
+                  errores   = map (\err -> @nombre ++ ": " ++ err) (@alfabeto.errores ++ inicioErr ++ @producciones.errores)
+              in errores
+
+SEM Alfabeto
+    | Cons lhs.errores = if @loc.verificar
+                         then ("El simbolo: '" ++ @hd.simb ++ "' esta repetido mas de una ves en el alfabeto.") : @tl.errores
+                         else @tl.errores
+    | Nil  lhs.errores = []
+
+SEM Inicio
+    | Cons lhs.errores = if elem @hd.simb @lhs.alfabeto
+                         then @tl.errores
+                         else ("El simbolo de inicio: '" ++ @hd.simb ++ "' no se encuentra en el alfabeto.") : @tl.errores
+    | Nil lhs.errores  = []
+
+SEM Producciones
+    | Cons lhs.errores = if @loc.verificar
+                         then let error = "La produccion con el simb. izq.:'" 
+                                       ++ @hd.simb 
+                                       ++ "' esta repetida mas de una ves en la lista de producciones."
+                              in (error : @hd.errores) ++ @tl.errores
+                         else @hd.errores ++ @tl.errores
+    | Nil lhs.errores = []
+
+SEM Produccion
+    | Tuple lhs.errores = if elem @x1.simb @lhs.alfabeto
+                          then @x2.errores
+                          else ("El simbolo de la produccion (izq): '" ++ @x1.simb ++ "' no se encuentra en el alfabeto.") : @x2.errores
+
+SEM Succesor
+    | Cons lhs.errores = if elem @hd.simb @lhs.alfabeto
+                         then @tl.errores
+                         else ("El simbolo de la produccion (der): '" ++ @hd.simb ++ "' no se encuentra en el alfabeto.") : @tl.errores
+    | Nil lhs.errores = []
+
+
+{
+ejemplo1 = SistemaL "Koch" alfaK initK prodK
+alfaK = [Simbolo "F", Simbolo "f", Simbolo "+", Simbolo "-"]
+initK = [Simbolo "F", Simbolo "a"]
+prodK = [ (Simbolo "F", [Simbolo "F", Simbolo "g"])
+        , (Simbolo "F", [])
+        ]
+
+ejemplo2 = SistemaL "Koch" alfaK2 initK2 prodK2
+alfaK2 = [Simbolo "F", Simbolo "f", Simbolo "+", Simbolo "-"]
+initK2 = [Simbolo "F", Simbolo "f"]
+prodK2 = [ (Simbolo "F", [Simbolo "F", Simbolo "+"])
+        , (Simbolo "f", [])
+        ]
+
+getNombre (SistemaL nm _ _ _) = nm
+
+testSistemaL :: SistemaL -> Either [String] SistemaL
+testSistemaL = sem_SistemaL
+}

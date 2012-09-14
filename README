@@ -1,0 +1,33 @@
+Sistema-L / L-System
+====================
+
+Para compilar [basico]:
+
+    runhaskell Setup.hs configure
+    runhaskell Setup.hs build
+    runhaskell Setup.hs install
+
+o tambien: make
+
+Para generar su documentacion y archivos fuente en la 
+documentacion (escribir anter de instalar y despues de construir el paquete):
+
+    runhaskell Setup.hs hscolour
+    runhaskell Setup.hs haddock --hyperlink-source
+
+Tambien necesitaras copiar la carpeta 'db' al lugar donde se encuentra el ejecutable.
+
+Para ejecutar:
+    lsystem
+
+Nota: Este programa ha sido reescrito para:
+            San Simon Haskell Hackathone, Abril 2011
+      Y vuelto a reescribir y mejorado para:
+            Conferencias Ciencias de la Computación Bolivia
+
+También disponible en: http://hackage.haskell.org/package/lsystem
+
+Autor:
+    Carlos Gomez
+    carliros.g@gmail.com
+
