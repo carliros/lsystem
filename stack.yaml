@@ -1,0 +1,15 @@
+resolver:
+  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/0.yaml
+
+packages:
+- .
+
+extra-deps:
+  - uuagc-0.9.53.1@sha256:ff22a1145455fa064f870694882249c3fc344987e35fcb10ff7f8e21a239e6bb,3292
+  - uuagc-cabal-1.2.0.0@sha256:4defb1455dedcc3b0222c6f069c51e08fa70b1bd9ec044c0b7accedb49c2c367,1104
+  - uulib-0.9.24@sha256:152da205e22befdeeb65e734990142d578456efb6e14e46bfd22e4cb63cd374d,1801
+  - uu-parsinglib-2.9.1.1@sha256:08e3d148cf6b2a6d8e99193f15367a76beacda4e5d8d7829727caaa30adf72ea,3149
+  - uu-interleaved-0.2.0.2@sha256:595e62dfca0e3a08e9fd37e102568313d4f3e2c29fab26a66f3640cc9412ecf3,1721
+
+custom-preprocessor-extensions:
+  - ag
