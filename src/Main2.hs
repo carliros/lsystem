@@ -15,3 +15,10 @@ main = do
   putStrLn "Hello world"
   dt <- readDataBase
   putStrLn $ show dt
+
+{-
+Tryout this:
+- https://archives.haskell.org/code.haskell.org/gtk2hs/docs/tutorial/Tutorial_Port/app1.xhtml
+- https://functional.works-hub.com/learn/generating-artwork-with-haskell-09371
+- https://hackage.haskell.org/package/diagrams
+-}
